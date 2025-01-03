@@ -20,14 +20,13 @@ def pre_process(image: np.array, device: str, factor: int = 8) -> torch.Tensor:
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_rgb = np.ascontiguousarray(image_rgb.astype(np.float32)) / 255.0
     image_tensor = torch.from_numpy(image_rgb.transpose(2, 0, 1))
+    image_tensor = image_tensor.unsqueeze(0).to(device)
 
-    _, h, w = image_tensor.shape
+    _, _, h, w = image_tensor.shape
     H, W = ((h + factor) // factor) * factor, ((w + factor) // factor * factor)
     padh = H - h if h % factor != 0 else 0
     padw = W - w if w % factor != 0 else 0
     image_tensor = F.pad(image_tensor, (0, padw, 0, padh), 'reflect')
-
-    image_tensor = image_tensor.unsqueeze(0).to(device)
 
     return image_tensor
 
@@ -48,7 +47,7 @@ def post_process(model_output: torch.Tensor, input_hw: Tuple[int, int]) -> np.ar
 
 if __name__ == "__main__":
     video_path = "/Users/shaun/datasets/image_enhancement/dehaze/DVD/DrivingHazy/31_hazy_video.mp4"
-    device = "mps"
+    device = "cpu"
     weights_path = "weights/ots.pkl"
 
     # Get model from weights
